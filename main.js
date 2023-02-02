@@ -1,66 +1,45 @@
-let classifier;
-// Model URL
-let imageModelURL = 'https://teachablemachine.withgoogle.com/models/4qbP1d1QQ/';
+noseX = 0;
+noseY = 0;
+diferenca = 0;
+pulso1X = 0;
+pulso2X = 0;
 
-// Video
-let video;
-let flip 
-// To store the classification
-let label = "";
-
-// Load the model first
-function preload() {
-  classifier = ml5.imageClassifier(imageModelURL + 'model.json');
-}
-
-function setup() {
-    canvas = createCanvas(320, 260);
-    canvas.center();
-    // Create the video
+function setup(){
     video = createCapture(VIDEO);
-    video.size(320, 240);
-    video.hide();  
+    video.size(550, 500);
+    video.position(100,200)
 
-  flippedVideo = ml5.flipImage(video)
-  // Start classifying
-  classifyVideo();
+    canvas = createCanvas(550, 500);
+    canvas.position(800,200);
+
+    poseNet = ml5.poseNet(video, modelLoaded);
+    poseNet.on('pose', gotPoses);
 }
 
-function draw() {
-  background(31, 31, 31);
-  // Draw the video
-  image(flippedVideo, 0, 0);
-
-  // Draw the label
-  fill(255);
-  textSize(16);
-  textAlign(CENTER);
-  text(label, width / 2, height - 4);
+function modelLoaded(){
+    console.log("Tudo Pronto. Vamos");
 }
 
-// Get a prediction for the current video frame
-function classifyVideo() {
-  flippedVideo = ml5.flipImage(video)
-  classifier.classify(flippedVideo, gotResult);
+function gotPoses(results){
+if(results.length > 0){
+    console.log(results);
+    noseX = results[0].pose.nose.x;
+    noseY = results[0].pose.nose.y;
+
+    pulso1X = results[0].pose.rightWrist.x;
+    pulso2X = results[0].pose.leftWrist.x;
+    diferenca = floor(pulso2X - pulso1X);
+
 }
 
-// When we get a result
-function gotResult(error, results) {
-  // If there is an error
-  if (error) {
-    console.error(error);
-    return;
-  }
-  // The results are in an array ordered by confidence.
-  // console.log(results[0]);
-  label = results[0].label;
-  // Classifiy again!
-  classifyVideo();
+}
 
- 
+function draw(){
+    background('#8e2de2')
+document.getElementById("quadrado").innerHTML = "Medidas = " + diferenca + " px";
+fill('white')
+stroke('')
+square(noseX, noseY, diferenca);
 }
 
 
-function takeSnapshot(){
-  save('Pet.png');
-}
